@@ -2,12 +2,17 @@ package com.viegg.vcast
 
 import android.Manifest
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.view.View
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
+import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 
@@ -22,9 +27,14 @@ class MainActivity : Activity() {
     private lateinit var passkeyInput: EditText
     private lateinit var startButton: Button
     private lateinit var stopButton: Button
+    private lateinit var languageSpinner: Spinner
 
     private val stateListener: (AppState.Snapshot) -> Unit = { snapshot ->
         render(snapshot)
+    }
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(AppLocale.wrap(newBase))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,7 +51,9 @@ class MainActivity : Activity() {
         passkeyInput = findViewById(R.id.passkeyInput)
         startButton = findViewById(R.id.startButton)
         stopButton = findViewById(R.id.stopButton)
+        languageSpinner = findViewById(R.id.languageSpinner)
 
+        setupLanguageSpinner()
         nameInput.setText(Settings.friendlyName(this))
         keywordInput.setText(Settings.taskKeyword(this))
         endpointInput.setText(Settings.taskEndpoint(this))
@@ -99,6 +111,50 @@ class MainActivity : Activity() {
         }
     }
 
+    private fun setupLanguageSpinner() {
+        val labels = arrayOf(
+            getString(R.string.language_system),
+            getString(R.string.language_english),
+            getString(R.string.language_chinese)
+        )
+        languageSpinner.adapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_item,
+            labels
+        ).apply {
+            setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        }
+        languageSpinner.setSelection(languagePosition(AppLocale.current(this)))
+        languageSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(
+                parent: AdapterView<*>?,
+                view: View?,
+                position: Int,
+                id: Long
+            ) {
+                val language = languageTag(position)
+                if (language != AppLocale.current(this@MainActivity)) {
+                    AppLocale.set(this@MainActivity, language)
+                    recreate()
+                }
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
+        }
+    }
+
+    private fun languagePosition(language: String): Int = when (language) {
+        AppLocale.ENGLISH -> 1
+        AppLocale.CHINESE -> 2
+        else -> 0
+    }
+
+    private fun languageTag(position: Int): String = when (position) {
+        1 -> AppLocale.ENGLISH
+        2 -> AppLocale.CHINESE
+        else -> AppLocale.SYSTEM
+    }
+
     private fun saveSettings(showConfirmation: Boolean) {
         Settings.save(
             this,
@@ -130,7 +186,12 @@ class MainActivity : Activity() {
         )
 
         addrText.text = if (snapshot.running) {
-            "${snapshot.name}\n${snapshot.ip}:${snapshot.port}\nUDN: ${snapshot.udn}"
+            getString(
+                R.string.device_info,
+                snapshot.name,
+                "${snapshot.ip}:${snapshot.port}",
+                snapshot.udn
+            )
         } else {
             getString(R.string.stopped_hint)
         }

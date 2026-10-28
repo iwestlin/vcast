@@ -94,6 +94,7 @@ object Config {
             udn = Settings.getUdn(context),
             friendlyName = Settings.friendlyName(context),
             httpPort = httpPort,
+            modelDescription = context.getString(R.string.model_description),
             server = "Android/${Build.VERSION.RELEASE} UPnP/1.0 Vcast/1.0",
             taskEndpoint = Settings.taskEndpoint(context),
             taskKeyword = Settings.taskKeyword(context),

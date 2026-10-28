@@ -1,5 +1,6 @@
 package com.viegg.vcast
 
+import android.content.Context
 import java.net.DatagramPacket
 import java.net.InetAddress
 import java.net.InetSocketAddress
@@ -18,6 +19,7 @@ private const val ALIVE_INTERVAL_MS = 20_000L
 private data class SsdpTarget(val st: String, val usn: String)
 
 class SsdpServer(
+    private val context: Context,
     private val config: VcastConfig,
     private val location: String,
     private val log: (String) -> Unit
@@ -46,14 +48,26 @@ class SsdpServer(
                     InetSocketAddress(InetAddress.getByName(SSDP_ADDR), SSDP_PORT),
                     iface
                 )
-                log("[ssdp] joined $SSDP_ADDR on ${iface.name} (${config.ip})")
+                log(
+                    context.getString(
+                        R.string.log_ssdp_joined,
+                        SSDP_ADDR,
+                        iface.name,
+                        config.ip
+                    )
+                )
             } else {
                 udp.joinGroup(InetAddress.getByName(SSDP_ADDR))
-                log("[ssdp] joined $SSDP_ADDR (default interface)")
+                log(context.getString(R.string.log_ssdp_joined_default, SSDP_ADDR))
             }
             udp.loopbackMode = true
         } catch (e: Exception) {
-            log("[ssdp] multicast setup failed: ${e.message}")
+            log(
+                context.getString(
+                    R.string.log_ssdp_setup_failed,
+                    e.message ?: e.toString()
+                )
+            )
         }
         socket = udp
         running = true
@@ -70,7 +84,7 @@ class SsdpServer(
             ALIVE_INTERVAL_MS,
             TimeUnit.MILLISECONDS
         )
-        log("[ssdp] bound to 0.0.0.0:$SSDP_PORT")
+        log(context.getString(R.string.log_ssdp_bound, SSDP_PORT))
     }
 
     fun stop() {
@@ -92,7 +106,14 @@ class SsdpServer(
                 val text = String(packet.data, packet.offset, packet.length, Charsets.UTF_8)
                 handleMessage(text, packet.address, packet.port)
             } catch (e: Exception) {
-                if (running) log("[ssdp] receive error: ${e.message}")
+                if (running) {
+                    log(
+                        context.getString(
+                            R.string.log_ssdp_receive_error,
+                            e.message ?: e.toString()
+                        )
+                    )
+                }
             }
         }
     }
@@ -127,7 +148,14 @@ class SsdpServer(
             val delay = (Math.random() * minOf(mx * 1000, 400)).toLong()
             scheduler.schedule({
                 if (running) {
-                    log("[ssdp] ${address.hostAddress} searched for $st -> replying ${target.st}")
+                    log(
+                        context.getString(
+                            R.string.log_ssdp_search,
+                            address.hostAddress,
+                            st,
+                            target.st
+                        )
+                    )
                     send(buildSearchResponse(target), port, address)
                 }
             }, delay, TimeUnit.MILLISECONDS)
@@ -152,7 +180,7 @@ class SsdpServer(
         try {
             udp.send(DatagramPacket(data, data.size, address, port))
         } catch (e: Exception) {
-            log("[ssdp] send error: ${e.message}")
+            log(context.getString(R.string.log_ssdp_send_error, e.message ?: e.toString()))
         }
     }
 

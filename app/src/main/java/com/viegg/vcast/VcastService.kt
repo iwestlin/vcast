@@ -38,6 +38,10 @@ class VcastService : Service() {
     private var wifiLock: WifiManager.WifiLock? = null
     private var wakeLock: PowerManager.WakeLock? = null
 
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(AppLocale.wrap(newBase))
+    }
+
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
@@ -65,11 +69,11 @@ class VcastService : Service() {
 
     private fun startEverything() {
         if (running) {
-            updateNotification("Running")
+            updateNotification(getString(R.string.notification_running))
             return
         }
         running = true
-        val startingNotification = buildNotification("Starting...")
+        val startingNotification = buildNotification(getString(R.string.notification_starting))
         try {
             if (Build.VERSION.SDK_INT >= 34) {
                 startForeground(
@@ -82,7 +86,7 @@ class VcastService : Service() {
             }
         } catch (e: Exception) {
             running = false
-            log("[main] foreground start failed: ${e.message}")
+            log(getString(R.string.log_foreground_start_failed, e.message ?: e.toString()))
             AppState.setStopped()
             stopSelf()
             return
@@ -98,11 +102,12 @@ class VcastService : Service() {
             var server: HttpServer? = null
             var ssdp: SsdpServer? = null
             try {
-                val config = Config.resolve(applicationContext)
+                val localizedContext = AppLocale.wrap(applicationContext)
+                val config = Config.resolve(localizedContext)
                 val state = TransportState()
                 state.onUri = { uri, title, metadata -> onCast(uri, title, metadata, config) }
 
-                val http = HttpServer(applicationContext, config, state) { line -> log(line) }
+                val http = HttpServer(localizedContext, config, state) { line -> log(line) }
                 server = http
                 http.start()
                 if (generation.get() != myGeneration) {
@@ -111,7 +116,9 @@ class VcastService : Service() {
                 }
 
                 val location = "http://${config.ip}:${http.port}/description.xml"
-                val ssdpInstance = SsdpServer(config, location) { line -> log(line) }
+                val ssdpInstance = SsdpServer(localizedContext, config, location) { line ->
+                    log(line)
+                }
                 ssdp = ssdpInstance
                 ssdpInstance.start()
                 if (!running || generation.get() != myGeneration) {
@@ -131,29 +138,39 @@ class VcastService : Service() {
                     if (ssdpServer === ssdpInstance) ssdpServer = null
                     return@execute
                 }
-                log("[main] Vcast running at ${config.ip}:${http.port}")
-                log("[main] device: ${config.friendlyName}")
-                log("[main] UDN: uuid:${config.udn}")
+                log(getString(R.string.log_running, config.ip, http.port))
+                log(getString(R.string.log_device, config.friendlyName))
+                log(getString(R.string.log_udn, config.udn))
                 if (config.ip == "127.0.0.1") {
-                    log("[main] no Wi-Fi/LAN address found; connect Wi-Fi or hotspot")
+                    log(getString(R.string.log_no_lan))
                 }
                 if (config.taskEndpoint.isBlank()) {
-                    log("[main] task endpoint not set; forwarding disabled")
+                    log(getString(R.string.log_endpoint_not_set))
                 } else if (config.taskKeyword.isBlank()) {
-                    log("[main] task keyword not set; forwarding disabled")
+                    log(getString(R.string.log_keyword_not_set))
                 } else {
                     val error = runCatching {
                         TaskForwarder.matchesKeyword("", config.taskKeyword)
                     }.exceptionOrNull()
                     if (error == null) {
-                        log("[main] forwarding enabled (keyword: ${config.taskKeyword})")
+                        log(getString(R.string.log_forwarding_enabled, config.taskKeyword))
                     } else {
-                        log("[main] invalid task keyword regex: ${error.message}; forwarding disabled")
+                        log(
+                            getString(
+                                R.string.log_invalid_keyword,
+                                error.message ?: error.toString()
+                            )
+                        )
                     }
                 }
-                updateNotification("Running · ${config.ip}:${http.port}")
+                updateNotification(
+                    getString(
+                        R.string.notification_running_address,
+                        "${config.ip}:${http.port}"
+                    )
+                )
             } catch (e: Exception) {
-                log("[main] fatal: ${e.message}")
+                log(getString(R.string.log_fatal, e.message ?: e.toString()))
                 ssdp?.stop()
                 server?.stop()
                 AppState.setStopped()
@@ -173,36 +190,50 @@ class VcastService : Service() {
         httpServer = null
         releaseLocks()
         if (wasRunning) {
-            log("[main] stopped")
+            log(getString(R.string.log_stopped))
         }
         AppState.setStopped()
     }
 
     private fun onCast(uri: String, title: String, metadata: String, config: VcastConfig) {
         if (!running || uri.isBlank()) return
-        log("[cast] ${title.ifBlank { "(no title)" }} -> $uri")
+        log(
+            if (title.isBlank()) {
+                getString(R.string.log_cast_no_title, uri)
+            } else {
+                getString(R.string.log_cast_title, title, uri)
+            }
+        )
         AppState.setCast(uri, title)
-        updateNotification(if (title.isBlank()) "Cast: $uri" else "Cast: $title")
+        updateNotification(
+            getString(R.string.notification_cast, title.ifBlank { uri })
+        )
 
         val keyword = config.taskKeyword.trim()
         if (keyword.isEmpty()) return
         val matched = try {
             TaskForwarder.matchesKeyword(uri, keyword)
         } catch (e: Exception) {
-            log("[task] invalid keyword regex: ${e.message}")
+            log(getString(R.string.log_task_invalid_keyword, e.message ?: e.toString()))
             return
         }
         if (!matched) return
         if (config.taskEndpoint.isBlank()) {
-            log("[task] keyword matched, but task endpoint is not set; skipped")
+            log(getString(R.string.log_task_endpoint_missing))
             return
         }
-        log("[task] keyword matched, submitting to ${config.taskEndpoint}")
+        log(getString(R.string.log_task_submitting, config.taskEndpoint))
         TaskForwarder.addTask(uri, title, metadata, config.taskEndpoint, config.passkey) { result ->
             result.onSuccess { response ->
-                log("[task] response HTTP ${response.status}: ${response.body.ifBlank { "(empty)" }}")
+                log(
+                    getString(
+                        R.string.log_task_response,
+                        response.status,
+                        response.body.ifBlank { getString(R.string.log_empty_response) }
+                    )
+                )
             }.onFailure { error ->
-                log("[task] response error: ${error.message ?: error.toString()}")
+                log(getString(R.string.log_task_error, error.message ?: error.toString()))
             }
         }
     }
@@ -221,9 +252,9 @@ class VcastService : Service() {
                 setReferenceCounted(false)
                 acquire()
             }
-            log("[main] multicast/wifi lock acquired")
+            log(getString(R.string.log_multicast_lock))
         } catch (e: Exception) {
-            log("[main] wifi lock failed: ${e.message}")
+            log(getString(R.string.log_wifi_lock_failed, e.message ?: e.toString()))
         }
 
         try {
@@ -236,7 +267,7 @@ class VcastService : Service() {
                 acquire()
             }
         } catch (e: Exception) {
-            log("[main] wake lock failed: ${e.message}")
+            log(getString(R.string.log_wake_lock_failed, e.message ?: e.toString()))
         }
     }
 
@@ -282,7 +313,7 @@ class VcastService : Service() {
 
         return Notification.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle("Vcast")
+            .setContentTitle(getString(R.string.app_name))
             .setContentText(text)
             .setContentIntent(contentIntent)
             .setOnlyAlertOnce(true)
@@ -290,7 +321,7 @@ class VcastService : Service() {
             .addAction(
                 Notification.Action.Builder(
                     android.R.drawable.ic_media_pause,
-                    "Stop",
+                    getString(R.string.notification_stop),
                     stopIntent
                 ).build()
             )
@@ -302,10 +333,10 @@ class VcastService : Service() {
             val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "DLNA renderer",
+                getString(R.string.notification_channel_name),
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = "Keeps the DLNA renderer running in the background"
+                description = getString(R.string.notification_channel_description)
                 setShowBadge(false)
             }
             manager.createNotificationChannel(channel)

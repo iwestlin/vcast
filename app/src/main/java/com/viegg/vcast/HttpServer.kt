@@ -88,7 +88,14 @@ class HttpServer(
                 val client = socket.accept()
                 workers.execute { handleConnection(client) }
             } catch (e: Exception) {
-                if (running) log("[http] accept error: ${e.message}")
+                if (running) {
+                    log(
+                        context.getString(
+                            R.string.log_http_accept_error,
+                            e.message ?: e.toString()
+                        )
+                    )
+                }
             }
         }
     }
@@ -234,7 +241,7 @@ class HttpServer(
         val action = parseAction(request.headers["soapaction"], body)
         val args = extractArgs(body)
         val outputArgs = handleAction(service, action, args, state)
-        log("[soap] $service#$action $args")
+        log(context.getString(R.string.log_soap, service, action, args))
         val xml = buildSoapResponse(service, action, outputArgs)
         sendResponse(
             output, "200 OK",
@@ -254,7 +261,7 @@ class HttpServer(
         val eventPath = Regex("^/(AVTransport|RenderingControl|ConnectionManager)/event$")
             .find(request.path)
 
-        log("[event] SUBSCRIBE ${request.path}")
+        log(context.getString(R.string.log_event_subscribe, request.path))
         if (callback != null && eventPath != null) {
             val service = eventPath.groupValues[1]
             notifier.execute { sendInitialEvent(callback, service, state) }
@@ -476,7 +483,12 @@ class HttpServer(
 
             sendNotify(url, body)
         } catch (e: Exception) {
-            log("[event] initial NOTIFY failed: ${e.message}")
+            log(
+                context.getString(
+                    R.string.log_event_notify_failed,
+                    e.message ?: e.toString()
+                )
+            )
         }
     }
 
