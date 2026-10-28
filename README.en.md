@@ -79,3 +79,7 @@ git push origin v1.0.1
 ## Package
 
 `com.viegg.vcast`
+
+## Acknowledgements
+
+This project was inspired by https://github.com/xfangfang/Macast

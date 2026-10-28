@@ -79,3 +79,7 @@ git push origin v1.0.1
 ## 包名
 
 `com.viegg.vcast`
+
+## 致谢
+
+本项目灵感来自 https://github.com/xfangfang/Macast
