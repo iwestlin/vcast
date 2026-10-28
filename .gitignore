@@ -5,3 +5,4 @@ app/build/
 .idea/
 *.iml
 .DS_Store
+vcast.apk
