@@ -1,4 +1,4 @@
-package com.vcast
+package com.viegg.vcast
 
 import java.net.DatagramPacket
 import java.net.InetAddress

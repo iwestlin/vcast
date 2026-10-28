@@ -1,4 +1,4 @@
-package com.vcast
+package com.viegg.vcast
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -18,8 +18,8 @@ import java.util.concurrent.atomic.AtomicInteger
 
 class VcastService : Service() {
     companion object {
-        const val ACTION_START = "com.vcast.START"
-        const val ACTION_STOP = "com.vcast.STOP"
+        const val ACTION_START = "com.viegg.vcast.START"
+        const val ACTION_STOP = "com.viegg.vcast.STOP"
 
         private const val TAG = "Vcast"
         private const val CHANNEL_ID = "vcast"

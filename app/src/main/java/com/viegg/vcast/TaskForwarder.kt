@@ -1,4 +1,4 @@
-package com.vcast
+package com.viegg.vcast
 
 import org.json.JSONObject
 import java.net.HttpURLConnection

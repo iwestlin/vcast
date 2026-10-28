@@ -1,4 +1,4 @@
-package com.vcast
+package com.viegg.vcast
 
 import android.content.Context
 import java.io.BufferedInputStream

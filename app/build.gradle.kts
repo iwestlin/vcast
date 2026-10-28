@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.vcast"
+    namespace = "com.viegg.vcast"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.vcast"
+        applicationId = "com.viegg.vcast"
         minSdk = 26
         targetSdk = 35
         versionCode = 1

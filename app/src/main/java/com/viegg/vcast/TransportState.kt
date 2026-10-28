@@ -1,4 +1,4 @@
-package com.vcast
+package com.viegg.vcast
 
 class TransportState {
     @Volatile var uri: String = ""
