@@ -12,7 +12,8 @@ Vcast is an Android DLNA/UPnP Media Renderer. Once the service is running, playe
 - English and Chinese UI, following the system or manually switchable
 - Match casts by cast URL regex; `*` matches everything
 - Forward `{room, passkey, title?, extra?}` JSON
-- Cast log and HTTP response log
+- Last cast link is truncated and can be copied with one tap
+- Cast log and HTTP response log, with key events highlighted
 - No default endpoint, passkey, or keyword
 
 ## Settings

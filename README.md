@@ -12,7 +12,8 @@ Vcast 是一个 Android DLNA/UPnP Media Renderer。启动服务后，同一局�
 - 中英文界面，可跟随系统或手动切换
 - 按投屏 URL 正则匹配任务，`*` 表示全部
 - 转发 `{room, passkey, title?, extra?}` JSON
-- 投屏日志和 HTTP 响应日志
+- 最近投屏链接支持截断显示并一键复制
+- 投屏日志和 HTTP 响应日志（关键事件高亮）
 - 无默认 endpoint、passkey 或 keyword
 
 ## 设置

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="log_cast">#0D47A1</color>
+    <color name="log_task">#BF360C</color>
+    <color name="log_success">#1B5E20</color>
+    <color name="log_error">#B71C1C</color>
+</resources>

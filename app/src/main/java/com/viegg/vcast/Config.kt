@@ -15,7 +15,7 @@ data class VcastConfig(
     val udn: String,
     val friendlyName: String,
     val httpPort: Int,
-    val version: String = "1.0",
+    val version: String = "1.0.1",
     val server: String,
     val manufacturer: String = "Vcast",
     val manufacturerURL: String = "",
@@ -95,7 +95,7 @@ object Config {
             friendlyName = Settings.friendlyName(context),
             httpPort = httpPort,
             modelDescription = context.getString(R.string.model_description),
-            server = "Android/${Build.VERSION.RELEASE} UPnP/1.0 Vcast/1.0",
+            server = "Android/${Build.VERSION.RELEASE} UPnP/1.0 Vcast/1.0.1",
             taskEndpoint = Settings.taskEndpoint(context),
             taskKeyword = Settings.taskKeyword(context),
             passkey = Settings.passkey(context)

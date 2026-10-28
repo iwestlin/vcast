@@ -16,6 +16,9 @@
     <string name="notification_permission_denied">Notifications disabled; the service still runs.</string>
     <string name="stopped_hint">Tap Start to advertise this phone as a DLNA renderer.</string>
     <string name="last_cast">Last cast: %1$s</string>
+    <string name="copy_link">Copy link</string>
+    <string name="link_copied">Link copied</string>
+    <string name="cast_link">Cast link</string>
     <string name="settings_saved">Saved. Restart the service to apply.</string>
     <string name="device_info">%1$s\n%2$s\nUDN: %3$s</string>
     <string name="language">Language</string>

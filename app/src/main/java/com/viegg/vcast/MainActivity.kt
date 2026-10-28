@@ -2,11 +2,18 @@ package com.viegg.vcast
 
 import android.Manifest
 import android.app.Activity
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Typeface
 import android.os.Build
 import android.os.Bundle
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
+import android.text.style.StyleSpan
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
@@ -15,11 +22,14 @@ import android.widget.EditText
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
+import java.util.Locale
 
 class MainActivity : Activity() {
     private lateinit var statusText: TextView
     private lateinit var addrText: TextView
     private lateinit var lastCastText: TextView
+    private lateinit var lastCastUrlText: TextView
+    private lateinit var copyLastCastButton: Button
     private lateinit var logText: TextView
     private lateinit var nameInput: EditText
     private lateinit var keywordInput: EditText
@@ -44,6 +54,8 @@ class MainActivity : Activity() {
         statusText = findViewById(R.id.statusText)
         addrText = findViewById(R.id.addrText)
         lastCastText = findViewById(R.id.lastCastText)
+        lastCastUrlText = findViewById(R.id.lastCastUrlText)
+        copyLastCastButton = findViewById(R.id.copyLastCastButton)
         logText = findViewById(R.id.logText)
         nameInput = findViewById(R.id.nameInput)
         keywordInput = findViewById(R.id.keywordInput)
@@ -78,6 +90,10 @@ class MainActivity : Activity() {
 
         findViewById<Button>(R.id.clearLogButton).setOnClickListener {
             AppState.clearLog()
+        }
+
+        copyLastCastButton.setOnClickListener {
+            copyLastCastLink()
         }
 
         render(AppState.snapshot())
@@ -155,6 +171,16 @@ class MainActivity : Activity() {
         else -> AppLocale.SYSTEM
     }
 
+    private fun copyLastCastLink() {
+        val url = AppState.snapshot().lastUrl
+        if (url.isBlank()) return
+        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        clipboard.setPrimaryClip(
+            ClipData.newPlainText(getString(R.string.cast_link), url)
+        )
+        Toast.makeText(this, R.string.link_copied, Toast.LENGTH_SHORT).show()
+    }
+
     private fun saveSettings(showConfirmation: Boolean) {
         Settings.save(
             this,
@@ -196,20 +222,93 @@ class MainActivity : Activity() {
             getString(R.string.stopped_hint)
         }
 
-        lastCastText.text = if (snapshot.lastUrl.isNotBlank()) {
-            val title = snapshot.lastTitle
-            val label = if (title.isBlank()) snapshot.lastUrl else "$title\n${snapshot.lastUrl}"
-            getString(R.string.last_cast, label)
+        val lastUrl = snapshot.lastUrl
+        if (lastUrl.isBlank()) {
+            lastCastText.text = ""
+            lastCastText.visibility = View.GONE
+            lastCastUrlText.text = ""
+            lastCastUrlText.visibility = View.GONE
+            copyLastCastButton.visibility = View.GONE
         } else {
-            ""
+            lastCastText.text = getString(
+                R.string.last_cast,
+                snapshot.lastTitle.ifBlank { lastUrl }
+            )
+            lastCastText.visibility = View.VISIBLE
+            lastCastUrlText.text = if (snapshot.lastTitle.isBlank()) "" else lastUrl
+            lastCastUrlText.visibility =
+                if (lastCastUrlText.text.isBlank()) View.GONE else View.VISIBLE
+            copyLastCastButton.visibility = View.VISIBLE
         }
 
-        logText.text = snapshot.log.joinToString("\n")
+        renderLog(snapshot.log)
         startButton.isEnabled = !snapshot.running
         stopButton.isEnabled = snapshot.running
     }
 
+    private fun renderLog(lines: List<String>) {
+        val text = SpannableStringBuilder()
+        lines.forEachIndexed { index, line ->
+            val start = text.length
+            text.append(line)
+            val color = logColor(line)
+            if (color != 0) {
+                text.setSpan(
+                    ForegroundColorSpan(color),
+                    start,
+                    text.length,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+                text.setSpan(
+                    StyleSpan(Typeface.BOLD),
+                    start,
+                    text.length,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+            }
+            if (index < lines.lastIndex) text.append('\n')
+        }
+        logText.text = text
+    }
+
+    private fun logColor(line: String): Int {
+        val body = line.replaceFirst(LOG_TIMESTAMP, "")
+        val lower = body.lowercase(Locale.US)
+        if (body.startsWith("[cast]")) {
+            return getColor(R.color.log_cast)
+        }
+        if (body.startsWith("[task]")) {
+            val status = HTTP_STATUS.find(body)?.groupValues?.get(1)?.toIntOrNull()
+            if (status != null) {
+                return getColor(
+                    if (status in 200..299) R.color.log_success else R.color.log_error
+                )
+            }
+            if (lower.contains("submitting") || lower.contains("提交")) {
+                return getColor(R.color.log_task)
+            }
+            if (isErrorLog(lower)) {
+                return getColor(R.color.log_error)
+            }
+            return getColor(R.color.log_task)
+        }
+        if (isErrorLog(lower)) {
+            return getColor(R.color.log_error)
+        }
+        return 0
+    }
+
+    private fun isErrorLog(lower: String): Boolean =
+        lower.contains("error") ||
+            lower.contains("failed") ||
+            lower.contains("invalid") ||
+            lower.contains("失败") ||
+            lower.contains("错误") ||
+            lower.contains("无效")
+
     private companion object {
         const val NOTIFICATION_REQUEST = 1
+        val LOG_TIMESTAMP = Regex("^\\[\\d{2}:\\d{2}:\\d{2}\\] ")
+        val HTTP_STATUS = Regex("HTTP (\\d{3})")
     }
 }

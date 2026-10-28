@@ -16,6 +16,9 @@
     <string name="notification_permission_denied">通知权限未开启；服务仍会运行。</string>
     <string name="stopped_hint">点击“启动”，将此手机作为 DLNA 接收器广播到局域网。</string>
     <string name="last_cast">最近投屏：%1$s</string>
+    <string name="copy_link">复制链接</string>
+    <string name="link_copied">链接已复制</string>
+    <string name="cast_link">投屏链接</string>
     <string name="settings_saved">已保存。重启服务后生效。</string>
     <string name="device_info">%1$s\n%2$s\nUDN：%3$s</string>
     <string name="language">语言</string>
