@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Vcast</string>
+    <string name="status_running">Running</string>
+    <string name="status_stopped">Stopped</string>
+    <string name="start">Start</string>
+    <string name="stop">Stop</string>
+    <string name="save">Save settings</string>
+    <string name="settings">Settings</string>
+    <string name="cast_log">Cast log</string>
+    <string name="device_name">Device name</string>
+    <string name="task_keyword">Regex for cast URL (* = all)</string>
+    <string name="task_endpoint">Task endpoint for matched casts</string>
+    <string name="passkey">Passkey (optional)</string>
+    <string name="clear_log">Clear</string>
+    <string name="notification_permission_denied">Notifications disabled; the service still runs.</string>
+    <string name="stopped_hint">Tap Start to advertise this phone as a DLNA renderer.</string>
+    <string name="last_cast">Last cast: %1$s</string>
+    <string name="settings_saved">Saved. Restart the service to apply.</string>
+</resources>
