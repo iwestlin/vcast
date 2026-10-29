@@ -6,3 +6,7 @@ app/build/
 *.iml
 .DS_Store
 vcast.apk
+*.jks
+*.keystore
+keystore.properties
+!app/ci/debug.keystore

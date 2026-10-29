@@ -2,7 +2,17 @@
 
 English | [简体中文](README.md)
 
-Vcast is an Android DLNA/UPnP Media Renderer. Once the service is running, players on the same LAN can cast media to this phone. Vcast matches casts by a URL regex and forwards matching tasks to a configured HTTP endpoint.
+[![Release](https://img.shields.io/github/v/release/iwestlin/vcast)](https://github.com/iwestlin/vcast/releases)
+[![Build](https://github.com/iwestlin/vcast/actions/workflows/android.yml/badge.svg)](https://github.com/iwestlin/vcast/actions/workflows/android.yml)
+[![License](https://img.shields.io/github/license/iwestlin/vcast)](LICENSE)
+
+Vcast is an Android DLNA/UPnP Media Renderer. Once the service is running, players on the same LAN can cast media to this phone (you can even enable a hotspot and cast to the phone itself over a cellular network). Vcast matches casts by a URL regex and forwards matching tasks to a configured HTTP endpoint.
+
+## Screenshots
+
+| Settings | Logs |
+| --- | --- |
+| <img src="docs/screenshots/screenshot-1.jpg" width="300" alt="Settings screen"> | <img src="docs/screenshots/screenshot-2.jpg" width="300" alt="Log screen"> |
 
 ## Features
 
@@ -14,7 +24,14 @@ Vcast is an Android DLNA/UPnP Media Renderer. Once the service is running, playe
 - Forward `{room, passkey, title?, extra?}` JSON
 - Last cast link is truncated and can be copied with one tap
 - Cast log and HTTP response log, with key events highlighted
-- No default endpoint, passkey, or keyword
+- Custom endpoint, passkey, or keyword
+
+## Quick Start
+
+1. Install and open Vcast; on Android 13+, grant notification permission so the foreground service notification can be shown.
+2. Enter the HTTP URL that receives tasks in Task endpoint, set the cast URL regex and passkey as needed, then start the service.
+3. On the same LAN, open a DLNA-capable player and select the Vcast device to cast.
+4. Matched tasks are POSTed as JSON to your configured endpoint.
 
 ## Settings
 
@@ -32,10 +49,10 @@ Restart the service after changing device or task settings. Restart the service 
 
 `room` is the matched cast URL. `title` is sent only when the media metadata contains `dc:title`. `extra` contains the raw DIDL metadata and common parsed fields.
 
-```json
+```js
 {
   "room": "http://example.com/video.mp4",
-  "passkey": "",
+  "passkey": "", // optional; set a custom passkey to verify requests are genuine
   "title": "Example",
   "extra": {
     "metadata": "<DIDL-Lite ...>",
@@ -45,6 +62,17 @@ Restart the service after changing device or task settings. Restart the service 
   }
 }
 ```
+
+## FAQ
+
+- **The player cannot find the device**: Make sure the phone and player are on the same LAN and AP isolation is disabled; some routers require multicast/IGMP to be enabled.
+- **No LAN but still want to cast**: Enable the phone's hotspot, connect the player to it, and cast to the phone itself.
+- **Settings changes do not take effect**: Stop and restart the service.
+- **Tasks are not forwarded**: Check that the endpoint is reachable, the cast URL regex matches (`*` matches everything), and the passkey matches the receiver.
+
+## Privacy
+
+Vcast does not collect or upload any data. Settings stay on the device, cast links and metadata are only sent to the endpoint you configure, and logs are kept in memory only.
 
 ## Build
 
@@ -83,3 +111,7 @@ git push origin v1.0.1
 ## Acknowledgements
 
 This project was inspired by https://github.com/xfangfang/Macast
+
+## License
+
+[MIT](LICENSE)
