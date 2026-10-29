@@ -94,6 +94,19 @@ Install:
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
+### Release signing
+
+Release builds are signed via `keystore.properties` (local, gitignored) or environment variables:
+
+```properties
+storeFile=vcast-release.jks
+storePassword=...
+keyAlias=vcast
+keyPassword=...
+```
+
+When a `v*` tag is pushed, CI reads the signing info from GitHub Secrets: `RELEASE_KEYSTORE_BASE64` (generate with `base64 -i vcast-release.jks | pbcopy`), `RELEASE_STORE_PASSWORD`, `RELEASE_KEY_ALIAS`, and `RELEASE_KEY_PASSWORD`. Keep the keystore backed up; losing it prevents future updates of the published app.
+
 ## GitHub Actions
 
 - Pushing changes to `app/**`, Gradle configuration, or the workflow on `master`/`main` builds the APK and uploads it as an Actions artifact.

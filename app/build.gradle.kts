@@ -1,7 +1,19 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
 }
+
+val keystoreProperties = Properties().apply {
+    val file = rootProject.file("keystore.properties")
+    if (file.exists()) file.inputStream().use { load(it) }
+}
+
+fun signingValue(property: String, env: String): String? =
+    System.getenv(env) ?: keystoreProperties.getProperty(property)
+
+val releaseStoreFile = signingValue("storeFile", "RELEASE_STORE_FILE")
 
 android {
     namespace = "com.viegg.vcast"
@@ -22,6 +34,14 @@ android {
             keyAlias = "androiddebugkey"
             keyPassword = "android"
         }
+        if (releaseStoreFile != null) {
+            create("release") {
+                storeFile = rootProject.file(releaseStoreFile)
+                storePassword = signingValue("storePassword", "RELEASE_STORE_PASSWORD")
+                keyAlias = signingValue("keyAlias", "RELEASE_KEY_ALIAS")
+                keyPassword = signingValue("keyPassword", "RELEASE_KEY_PASSWORD")
+            }
+        }
     }
 
     buildTypes {
@@ -29,6 +49,7 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
         release {
+            signingConfig = signingConfigs.findByName("release")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

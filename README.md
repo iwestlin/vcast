@@ -94,6 +94,19 @@ app/build/outputs/apk/debug/app-debug.apk
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
+### 发布签名
+
+发布版通过 `keystore.properties`（本地，已加入 `.gitignore`）或环境变量签名：
+
+```properties
+storeFile=vcast-release.jks
+storePassword=...
+keyAlias=vcast
+keyPassword=...
+```
+
+推送 `v*` tag 时，CI 从 GitHub Secrets 读取签名信息：`RELEASE_KEYSTORE_BASE64`（用 `base64 -i vcast-release.jks | pbcopy` 生成）、`RELEASE_STORE_PASSWORD`、`RELEASE_KEY_ALIAS`、`RELEASE_KEY_PASSWORD`。请妥善备份 keystore，丢失后将无法更新已发布的应用。
+
 ## GitHub Actions
 
 - 修改 `app/**`、Gradle 配置或 workflow 后 push 到 `master`/`main`，会构建 APK 并上传 Actions artifact。
