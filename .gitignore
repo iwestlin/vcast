@@ -6,6 +6,7 @@ app/build/
 *.iml
 .DS_Store
 vcast.apk
+docs/vcast-promo-v2.mp4
 *.jks
 *.keystore
 keystore.properties

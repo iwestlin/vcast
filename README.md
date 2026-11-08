@@ -8,6 +8,10 @@
 
 Vcast 是一个 Android DLNA/UPnP Media Renderer。启动服务后，同一局域网内的播放器可以把媒体投到这台手机（甚至可以在蜂窝网络下开启热点自己投给自己）；Vcast 会按投屏 URL 正则匹配任务，并把命中的任务转发到指定 HTTP endpoint。
 
+## 宣传片
+
+https://github.com/user-attachments/assets/9990b961-bf12-401f-abc9-8a954374330d
+
 ## 截图
 
 | 设置 | 日志 |

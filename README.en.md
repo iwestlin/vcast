@@ -8,6 +8,10 @@ English | [简体中文](README.md)
 
 Vcast is an Android DLNA/UPnP Media Renderer. Once the service is running, players on the same LAN can cast media to this phone (you can even enable a hotspot and cast to the phone itself over a cellular network). Vcast matches casts by a URL regex and forwards matching tasks to a configured HTTP endpoint.
 
+## Promo video
+
+https://github.com/user-attachments/assets/9990b961-bf12-401f-abc9-8a954374330d
+
 ## Screenshots
 
 | Settings | Logs |
